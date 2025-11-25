@@ -1,10 +1,10 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { Fighter, Message } from '../types';
+import { Fighter } from '../types';
 import { MOCK_FIGHTERS } from '../constants';
 
 export const generateFighters = async (apiKey: string): Promise<Fighter[]> => {
   if (!apiKey) {
-    console.log("No API Key. Returning local mock fighters.");
+
     // Return mock data so the app is usable without AI
     // We shuffle them slightly to make it feel dynamic
     return [...MOCK_FIGHTERS].sort(() => Math.random() - 0.5);

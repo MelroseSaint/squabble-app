@@ -1,13 +1,13 @@
 
-import { Match, Message, UserProfile } from '../types';
+import { Match } from '../types';
 
 // Constants
 const DB_ENDPOINT = 'wss://squabble-06dbhqbb4tpar7vu71rsnbjab8.aws-use1.surreal.cloud/rpc';
 const DB_NAMESPACE = 'squabble';
 const DB_DATABASE = 'squabble_db';
 const LS_KEY = 'squabble_matches';
-const LS_PROFILE_KEY = 'squabble_user_profile';
-const LS_LEGAL_KEY = 'squabble_legal_accepted';
+
+
 const LS_TOKEN_KEY = 'squabble_auth_token';
 
 // Service State
@@ -15,51 +15,17 @@ let db: any = null;
 let useLocalStorage = false;
 let isInitialized = false;
 
-const DEFAULT_PROFILE: UserProfile = {
-  name: "New Fighter",
-  age: 21,
-  height: "5'10\"",
-  weight: "170 lbs",
-  weightClass: "Welterweight",
-  stance: "Orthodox",
-  experience: "Street",
-  bio: "I'm here to fight, not to talk.",
-  fightingStyle: "Street Brawler",
-  wins: 0,
-  losses: 0,
-  matches: 0,
-  isVerified: false,
-  trustedContacts: [],
-  balance: 1000,
-  betHistory: [],
-  transactions: []
-};
 
-// Helper to get local matches
-const getLocalMatches = (): Match[] => {
-  try {
-    const data = localStorage.getItem(LS_KEY);
-    return data ? JSON.parse(data) : [];
-  } catch (e) {
-    console.error("Error reading from localStorage", e);
-    return [];
-  }
-};
 
-// Helper to save local matches
-const saveLocalMatches = (matches: Match[]) => {
-  try {
-    localStorage.setItem(LS_KEY, JSON.stringify(matches));
-  } catch (e) {
-    console.error("Error writing to localStorage", e);
-  }
-};
+
+
+
 
 export const initDB = async (): Promise<boolean> => {
   if (isInitialized) return !useLocalStorage;
 
   try {
-    console.log("Attempting to load SurrealDB...");
+
     // Dynamic import to prevent crash if module is missing or fails
     const SurrealMod: any = await import('surrealdb');
 
@@ -72,7 +38,7 @@ export const initDB = async (): Promise<boolean> => {
 
     db = new SurrealClass();
 
-    console.log("Connecting to SurrealDB at", DB_ENDPOINT);
+
     await db.connect(DB_ENDPOINT);
 
     // Try to resume session
@@ -80,7 +46,7 @@ export const initDB = async (): Promise<boolean> => {
     if (token) {
       try {
         await db.authenticate(token);
-        console.log("Session resumed");
+
       } catch (e) {
         console.warn("Session invalid", e);
         localStorage.removeItem(LS_TOKEN_KEY);
@@ -91,7 +57,7 @@ export const initDB = async (): Promise<boolean> => {
     }
     await db.use({ ns: DB_NAMESPACE, db: DB_DATABASE });
 
-    console.log('SurrealDB connected successfully');
+
     useLocalStorage = false;
     isInitialized = true;
     return true;

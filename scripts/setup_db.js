@@ -37,16 +37,16 @@ DEFINE TABLE matches SCHEMAFULL
 
 async function main() {
     try {
-        console.log('Connecting to SurrealDB...');
+
         await db.connect(ENDPOINT);
 
-        console.log('Authenticating...');
+
         await db.authenticate(TOKEN);
 
-        console.log('Running Setup SQL...');
+
         await db.query(SETUP_SQL);
 
-        console.log('Setup Complete!');
+
     } catch (e) {
         console.error('Setup Failed:', e);
     } finally {
