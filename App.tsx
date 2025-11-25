@@ -415,7 +415,8 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="w-full h-screen bg-black text-white overflow-hidden flex flex-col font-sans max-w-md mx-auto border-x border-gray-900 shadow-2xl relative">
+    <div className="min-h-screen bg-black text-white font-sans">
+      <div className="mx-auto max-w-6xl px-4 md:px-6 lg:px-8 py-4">
 
       {/* Global Notifications */}
       {notification && (
@@ -459,7 +460,7 @@ const App: React.FC = () => {
 
       {/* Bottom Navigation */}
       {(currentView !== View.CHAT && currentView !== View.STYLES && currentView !== View.SETTINGS && currentView !== View.ANALYTICS && currentView !== View.FADE_DUEL) && (
-        <div className="h-16 bg-squabble-dark border-t border-gray-800 flex items-center justify-around px-2 z-50">
+        <div className="h-16 bg-squabble-dark border-t border-gray-800 flex items-center justify-around px-2 z-50 mt-6 rounded-lg">
           <button
             onClick={() => setCurrentView(View.SWIPE)}
             className={`flex flex-col items-center justify-center w-12 h-full ${currentView === View.SWIPE ? 'text-squabble-red' : 'text-gray-500'}`}
@@ -498,6 +499,7 @@ const App: React.FC = () => {
           </button>
         </div>
       )}
+      </div>
     </div>
   );
 };
