@@ -1,0 +1,7 @@
+{
+  "name": "Squabble",
+  "description": "The Tinder for fighting. Match with local angry humans and arrange a scrap at your nearest Waffle House.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
