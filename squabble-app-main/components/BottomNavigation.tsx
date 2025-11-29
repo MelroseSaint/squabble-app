@@ -1,17 +1,16 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { useAppStore } from '../store/appStore';
 import { View } from '../types';
 import { Flame, MessageCircle, User, Map as MapIcon, ShieldAlert, DollarSign, Trophy } from 'lucide-react';
 
-export const BottomNavigation: React.FC = () => {
+export const BottomNavigation: React.FC = memo(() => {
   const { currentView, matches, setCurrentView, setShowSafetyCenter } = useAppStore();
 
   // Don't show navigation on certain views
-  if (currentView === View.CHAT || 
-      currentView === View.STYLES || 
-      currentView === View.SETTINGS || 
-      currentView === View.ANALYTICS || 
-      currentView === View.FADE_DUEL) {
+  if (currentView === View.CHAT ||
+    currentView === View.STYLES ||
+    currentView === View.SETTINGS ||
+    currentView === View.ANALYTICS) {
     return null;
   }
 
@@ -27,52 +26,52 @@ export const BottomNavigation: React.FC = () => {
       </button>
 
       {/* Bottom Navigation */}
-      <div className="h-16 bg-squabble-dark border-t border-gray-800 flex items-center justify-around px-2 z-50 mt-6 rounded-lg">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 h-14 bg-fb-header border-t border-gray-700 flex items-center justify-around px-2 z-50">
         <button
           onClick={() => setCurrentView(View.SWIPE)}
-          className={`flex flex-col items-center justify-center w-12 h-full ${currentView === View.SWIPE ? 'text-squabble-red' : 'text-gray-500'}`}
+          className={`flex flex-col items-center justify-center w-full h-full ${currentView === View.SWIPE ? 'text-fb-blue' : 'text-fb-text-secondary'}`}
         >
-          <Flame size={20} />
+          <Flame size={24} className={currentView === View.SWIPE ? 'fill-current' : ''} />
         </button>
         <button
           onClick={() => setCurrentView(View.MAP)}
-          className={`flex flex-col items-center justify-center w-12 h-full ${currentView === View.MAP ? 'text-squabble-red' : 'text-gray-500'}`}
+          className={`flex flex-col items-center justify-center w-full h-full ${currentView === View.MAP ? 'text-fb-blue' : 'text-fb-text-secondary'}`}
         >
-          <MapIcon size={20} />
+          <MapIcon size={24} className={currentView === View.MAP ? 'fill-current' : ''} />
         </button>
 
         {/* Fade Duel Button */}
         <button
           onClick={() => setCurrentView(View.FADE_DUEL)}
-          className="flex flex-col items-center justify-center w-12 h-full text-gray-500 hover:text-green-500 transition-colors"
+          className={`flex flex-col items-center justify-center w-full h-full ${currentView === View.FADE_DUEL ? 'text-fb-blue' : 'text-fb-text-secondary'}`}
         >
-          <DollarSign size={20} />
+          <DollarSign size={24} className={currentView === View.FADE_DUEL ? 'fill-current' : ''} />
         </button>
 
         {/* Leaderboard Button */}
         <button
           onClick={() => setCurrentView(View.LEADERBOARD)}
-          className={`flex flex-col items-center justify-center w-12 h-full ${currentView === View.LEADERBOARD ? 'text-squabble-red' : 'text-gray-500'}`}
+          className={`flex flex-col items-center justify-center w-full h-full ${currentView === View.LEADERBOARD ? 'text-fb-blue' : 'text-fb-text-secondary'}`}
         >
-          <Trophy size={20} />
+          <Trophy size={24} className={currentView === View.LEADERBOARD ? 'fill-current' : ''} />
         </button>
 
         <button
           onClick={() => setCurrentView(View.MATCHES)}
-          className={`flex flex-col items-center justify-center w-12 h-full relative ${currentView === View.MATCHES ? 'text-squabble-red' : 'text-gray-500'}`}
+          className={`flex flex-col items-center justify-center w-full h-full relative ${currentView === View.MATCHES ? 'text-fb-blue' : 'text-fb-text-secondary'}`}
         >
-          <MessageCircle size={20} />
+          <MessageCircle size={24} className={currentView === View.MATCHES ? 'fill-current' : ''} />
           {matches.length > 0 && (
-            <span className="absolute top-3 right-2 w-2 h-2 bg-squabble-red rounded-full"></span>
+            <span className="absolute top-2 right-3 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-fb-header"></span>
           )}
         </button>
         <button
           onClick={() => setCurrentView(View.PROFILE)}
-          className={`flex flex-col items-center justify-center w-12 h-full ${currentView === View.PROFILE ? 'text-squabble-red' : 'text-gray-500'}`}
+          className={`flex flex-col items-center justify-center w-full h-full ${currentView === View.PROFILE ? 'text-fb-blue' : 'text-fb-text-secondary'}`}
         >
-          <User size={20} />
+          <User size={24} className={currentView === View.PROFILE ? 'fill-current' : ''} />
         </button>
       </div>
     </>
   );
-};
+});

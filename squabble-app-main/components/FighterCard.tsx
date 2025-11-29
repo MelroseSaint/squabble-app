@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import { Fighter } from '../types';
 import { MapPin, Trophy, Flame, Shield, Activity, Scale, Swords, Zap, Dumbbell, Star } from 'lucide-react';
 
@@ -8,7 +8,7 @@ interface FighterCardProps {
   onSuperLike: () => void; // Callback for super like
 }
 
-export const FighterCard: React.FC<FighterCardProps> = ({ fighter, active, onSuperLike }) => {
+export const FighterCard: React.FC<FighterCardProps> = memo(({ fighter, active, onSuperLike }) => {
   const [isSuperLiking, setIsSuperLiking] = useState(false);
   const [glowPosition, setGlowPosition] = useState({ x: 0, y: 0 });
   const [isGlowing, setIsGlowing] = useState(false);
@@ -216,4 +216,4 @@ export const FighterCard: React.FC<FighterCardProps> = ({ fighter, active, onSup
       </div>
     </div>
   );
-};
+});
