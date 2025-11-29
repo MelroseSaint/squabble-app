@@ -36,13 +36,14 @@ export interface TrustedContact {
 }
 
 export interface Bet {
-    id: string;
-    fighterName: string;
-    opponentName: string;
-    amount: number;
-    odds: string; // e.g. "+150"
-    status: 'OPEN' | 'WON' | 'LOST';
-    timestamp: number;
+  id: string;
+  user: string;
+  fighterName: string;
+  opponentName: string;
+  amount: number;
+  odds: string; // e.g. "+150"
+  status: 'OPEN' | 'WON' | 'LOST';
+  timestamp: number;
 }
 
 export interface Transaction {
@@ -62,7 +63,7 @@ export interface UserProfile {
   height: string;
   weight: string;
   weightClass: string;
-stance: string;
+  stance: string;
   experience: string;
   bio: string;
   fightingStyle: string;

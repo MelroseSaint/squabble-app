@@ -34,92 +34,51 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
     };
 
     return (
-        <div className="flex flex-col h-full bg-black text-white items-center justify-center p-8 relative overflow-hidden">
-            {/* Background Effects */}
-            <div className="absolute top-0 left-0 w-full h-full bg-red-500 bg-cover bg-center opacity-40 pointer-events-none"></div>
-            <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-transparent to-black/70 pointer-events-none"></div>
-
-            <div className="z-10 w-full max-w-sm space-y-8">
-                <div className="text-center space-y-2">
-                    <h1 className="text-5xl font-heading font-bold text-squabble-red tracking-tighter italic drop-shadow-lg">SQUABBLE</h1>
-                    <p className="text-gray-400 font-bold uppercase tracking-widest text-xs">Fight Club for the Internet</p>
-                </div>
-
-                <div className="bg-gray-900/80 backdrop-blur-md p-8 rounded-2xl border border-gray-800 shadow-2xl">
-                    <div className="flex justify-center mb-6">
-                        <div className="bg-gray-800 p-1 rounded-full flex">
-                            <button
-                                onClick={() => setIsLogin(true)}
-                                className={`px-6 py-2 rounded-full text-xs font-bold uppercase transition-all ${isLogin ? 'bg-squabble-red text-white shadow-lg' : 'text-gray-400 hover:text-white'}`}
-                            >
-                                Login
-                            </button>
-                            <button
-                                onClick={() => setIsLogin(false)}
-                                className={`px-6 py-2 rounded-full text-xs font-bold uppercase transition-all ${!isLogin ? 'bg-squabble-red text-white shadow-lg' : 'text-gray-400 hover:text-white'}`}
-                            >
-                                Sign Up
-                            </button>
-                        </div>
-                    </div>
-
+        <div className="bg-gray-100 flex items-center justify-center min-h-screen">
+            <div className="w-1/2">
+                <h1 className="text-6xl font-bold text-blue-600">facebook</h1>
+                <p className="text-2xl">Connect with friends and the world around you on Facebook.</p>
+            </div>
+            <div className="w-1/2 flex justify-center">
+                <div className="bg-white p-8 rounded-lg shadow-md w-96">
                     <form onSubmit={handleSubmit} className="space-y-4">
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-bold uppercase text-gray-500 ml-1">Username</label>
-                            <div className="relative">
-                                <User className="absolute left-3 top-3 text-gray-500" size={16} />
-                                <input
-                                    type="text"
-                                    value={username}
-                                    onChange={(e) => setUsername(e.target.value)}
-                                    className="w-full bg-black/50 border border-gray-700 rounded-xl py-3 pl-10 pr-4 text-white text-sm focus:border-squabble-red focus:outline-none transition-colors"
-                                    placeholder="Enter your username"
-                                    required
-                                />
-                            </div>
-                        </div>
-
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-bold uppercase text-gray-500 ml-1">Password</label>
-                            <div className="relative">
-                                <Lock className="absolute left-3 top-3 text-gray-500" size={16} />
-                                <input
-                                    type="password"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full bg-black/50 border border-gray-700 rounded-xl py-3 pl-10 pr-4 text-white text-sm focus:border-squabble-red focus:outline-none transition-colors"
-                                    placeholder="••••••••"
-                                    required
-                                />
-                            </div>
-                        </div>
-
-                        {error && (
-                            <div className="flex items-center gap-2 text-red-500 text-xs bg-red-900/20 p-3 rounded-lg border border-red-900/50">
-                                <AlertCircle size={14} />
-                                <span>{error}</span>
-                            </div>
-                        )}
-
+                        <input
+                            type="text"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                            className="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:border-blue-500"
+                            placeholder="Email or Phone Number"
+                            required
+                        />
+                        <input
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:border-blue-500"
+                            placeholder="Password"
+                            required
+                        />
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-squabble-red hover:bg-red-700 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all uppercase tracking-wider shadow-lg shadow-red-900/30 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-full bg-blue-600 text-white font-bold py-3 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
                         >
-                            {loading ? (
-                                <span className="animate-pulse">Processing...</span>
-                            ) : (
-                                <>
-                                    {isLogin ? 'Enter the Ring' : 'Join the Fight'} <ArrowRight size={18} />
-                                </>
-                            )}
+                            {loading ? 'Logging in...' : 'Log In'}
                         </button>
                     </form>
+                    <div className="text-center my-4">
+                        <a href="#" className="text-blue-600 hover:underline">Forgot password?</a>
+                    </div>
+                    <hr />
+                    <div className="text-center mt-4">
+                        <button
+                            onClick={() => setIsLogin(false)}
+                            className="bg-green-500 text-white font-bold py-3 px-6 rounded-md hover:bg-green-600 transition-colors"
+                        >
+                            Create new account
+                        </button>
+                    </div>
                 </div>
-
-                <p className="text-center text-[10px] text-gray-600">
-                    By entering, you agree to the <span className="text-gray-400 underline cursor-pointer">Rules of Engagement</span>.
-                </p>
             </div>
         </div>
     );

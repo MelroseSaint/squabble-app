@@ -1,8 +1,11 @@
 // postcss.config.js
-// Use ESM-friendly export and the new @tailwindcss/postcss plugin per Tailwind v4 guidance.
+// Explicitly point Tailwind to the CJS config to avoid ambiguity on Vercel builds.
+import tailwindcss from 'tailwindcss';
+import autoprefixer from 'autoprefixer';
+
 export default {
-  plugins: {
-    '@tailwindcss/postcss': {},
-    autoprefixer: {},
-  },
+  plugins: [
+    tailwindcss({ config: './tailwind.config.cjs' }),
+    autoprefixer(),
+  ],
 };

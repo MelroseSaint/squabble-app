@@ -6,14 +6,28 @@
 @layer base {
   :root {
     --color-squabble-red: #E50914;
-    --color-squabble-dark: #141414;
-    --color-squabble-gray: #2F2F2F;
+    --color-squabble-dark: #18191A;
+    /* FB Dark Bg */
+    --color-squabble-gray: #242526;
+    /* FB Card Bg */
+    --color-fb-bg: #18191A;
+    --color-fb-header: #242526;
+    --color-fb-card: #242526;
+    --color-fb-text: #E4E6EB;
+    --color-fb-text-secondary: #B0B3B8;
+    --color-fb-hover: #3A3B3C;
+    --color-fb-blue: #2D88FF;
   }
 }
 
 @layer utilities {
-  .font-sans { font-family: 'Inter', sans-serif; }
-  .font-heading { font-family: 'Teko', sans-serif; }
+  .font-sans {
+    font-family: 'Inter', sans-serif;
+  }
+
+  .font-heading {
+    font-family: 'Teko', sans-serif;
+  }
 
   .fighter-card {
     position: relative;

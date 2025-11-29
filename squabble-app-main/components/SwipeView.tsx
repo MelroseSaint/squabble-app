@@ -30,25 +30,7 @@ export const SwipeView: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-full relative">
-      {/* Header */}
-      <div className="h-16 flex items-center justify-center border-b border-gray-800 bg-black/50 backdrop-blur z-10 relative">
-        <h1 className="text-3xl font-heading font-bold text-squabble-red tracking-widest italic animate-laser-pulse text-shadow-laser">SQUABBLE</h1>
-        <div className="absolute right-4 top-1/2 transform -translate-y-1/2 flex items-center gap-1 text-[10px] font-bold uppercase text-gray-500">
-          {isCloudStorage ? (
-            <>
-              <span className="text-green-500">Cloud</span>
-              <Wifi size={12} className="text-green-500" />
-            </>
-          ) : (
-            <>
-              <span>Local</span>
-              <WifiOff size={12} />
-            </>
-          )}
-        </div>
-      </div>
-
+    <div className="flex flex-col h-full relative justify-center items-center">
       {/* Match Popup Overlay */}
       {newMatch && (
         <MatchPopup
@@ -73,34 +55,52 @@ export const SwipeView: React.FC = () => {
       )}
 
       {/* Card Deck */}
-      <div className="flex-1 relative p-4 flex items-center justify-center overflow-hidden">
-        {isLoading ? (
-          <div className="text-squabble-red animate-pulse font-heading text-2xl">FINDING OPPONENTS...</div>
-        ) : currentIndex < fighters.length ? (
-          <div className="w-full h-full max-w-md relative">
-            {/* Render next card below for stack effect */}
-            {currentIndex + 1 < fighters.length && (
-              <div className="absolute inset-0 transform scale-95 translate-y-4 opacity-50 z-0">
-                <FighterCard fighter={fighters[currentIndex + 1]} active={true} onSuperLike={handleSuperLike} />
+      <div className="flex items-center justify-center w-full max-w-4xl">
+        {/* Dislike Button */}
+        <button
+          onClick={() => handleSwipe('left')}
+          className="w-24 h-24 rounded-full bg-gray-900 border-2 border-gray-700 text-red-500 flex items-center justify-center hover:scale-110 hover:bg-red-900/20 transition-all shadow-lg shadow-red-900/10 mx-8"
+        >
+          <X size={48} strokeWidth={3} />
+        </button>
+
+        <div className="flex-1 relative p-4 flex items-center justify-center overflow-hidden" style={{ height: '600px' }}>
+          {isLoading ? (
+            <div className="text-squabble-red animate-pulse font-heading text-2xl">FINDING OPPONENTS...</div>
+          ) : currentIndex < fighters.length ? (
+            <div className="w-full h-full max-w-md relative">
+              {/* Render next card below for stack effect */}
+              {currentIndex + 1 < fighters.length && (
+                <div className="absolute inset-0 transform scale-95 translate-y-4 opacity-50 z-0">
+                  <FighterCard fighter={fighters[currentIndex + 1]} active={true} onSuperLike={handleSuperLike} />
+                </div>
+              )}
+              {/* Active Card */}
+              <div className="absolute inset-0 z-10">
+                <FighterCard fighter={fighters[currentIndex]} active={true} onSuperLike={handleSuperLike} />
               </div>
-            )}
-            {/* Active Card */}
-            <div className="absolute inset-0 z-10">
-              <FighterCard fighter={fighters[currentIndex]} active={true} onSuperLike={handleSuperLike} />
             </div>
-          </div>
-        ) : (
-          <div className="text-center text-gray-500">
-            <p className="font-heading text-2xl mb-2">NO MORE FIGHTS</p>
-            <p className="text-xs mb-4">Check back later or change your location.</p>
-            <button
-              onClick={() => window.location.reload()}
-              className="px-6 py-2 bg-gray-800 rounded-full text-sm text-white hover:bg-gray-700 uppercase font-bold"
-            >
-              Reload Area
-            </button>
-          </div>
-        )}
+          ) : (
+            <div className="text-center text-gray-500">
+              <p className="font-heading text-2xl mb-2">NO MORE FIGHTS</p>
+              <p className="text-xs mb-4">Check back later or change your location.</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="px-6 py-2 bg-gray-800 rounded-full text-sm text-white hover:bg-gray-700 uppercase font-bold"
+              >
+                Reload Area
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Like Button */}
+        <button
+          onClick={() => handleSwipe('right')}
+          className="w-24 h-24 rounded-full bg-gray-900 border-2 border-squabble-red text-green-500 flex items-center justify-center hover:scale-110 hover:bg-green-900/20 transition-all shadow-lg shadow-green-900/10 mx-8"
+        >
+          <Check size={48} strokeWidth={3} />
+        </button>
       </div>
 
       {/* Controls */}

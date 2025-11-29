@@ -25,13 +25,13 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ match, apiKey, onB
   useEffect(() => {
     // Initial welcome message from bot if empty (and no previous history)
     if (messages.length === 0) {
-      const initialMsg: Message = { 
-        id: Date.now().toString(), 
-        sender: 'fighter', 
-        text: "What you looking at?", 
-        timestamp: Date.now() 
+      const initialMsg: Message = {
+        id: Date.now().toString(),
+        sender: 'fighter',
+        text: "What you looking at?",
+        timestamp: Date.now()
       };
-      
+
       const newHistory = [initialMsg];
       setMessages(newHistory);
       // Persist immediately
@@ -44,7 +44,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ match, apiKey, onB
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
 
-  
+
   const handleTrashTalk = async () => {
     setInputText(await generateChatReply(apiKey, match.fighter, messages, true));
   };
@@ -63,146 +63,145 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ match, apiKey, onB
     const updatedHistory = [...messages, userMsg];
     setMessages(updatedHistory);
     setInputText('');
-    
+
     // Sync with parent immediately
     onUpdateMatch(match.id, updatedHistory, userMsg.text);
 
     // Generate reply (AI or Scripted Fallback)
     setIsTyping(true);
     try {
-        const replyText = await generateChatReply(apiKey, match.fighter, updatedHistory);
-        
-        const botMsg: Message = {
-          id: (Date.now() + 1).toString(),
-          sender: 'fighter',
-          text: replyText,
-          timestamp: Date.now()
-        };
+      const replyText = await generateChatReply(apiKey, match.fighter, updatedHistory);
 
-        const finalHistory = [...updatedHistory, botMsg];
-        setMessages(finalHistory);
-        setIsTyping(false);
+      const botMsg: Message = {
+        id: (Date.now() + 1).toString(),
+        sender: 'fighter',
+        text: replyText,
+        timestamp: Date.now()
+      };
 
-        // Sync bot response with parent
-        onUpdateMatch(match.id, finalHistory, botMsg.text);
+      const finalHistory = [...updatedHistory, botMsg];
+      setMessages(finalHistory);
+      setIsTyping(false);
+
+      // Sync bot response with parent
+      onUpdateMatch(match.id, finalHistory, botMsg.text);
     } catch (e) {
-        console.error("Failed to generate reply", e);
-        setIsTyping(false);
+      console.error("Failed to generate reply", e);
+      setIsTyping(false);
     }
   };
 
   const handleReport = () => {
-      notify('User reported for bad behavior.', 'success');
-      setShowMenu(false);
+    notify('User reported for bad behavior.', 'success');
+    setShowMenu(false);
   };
 
   const handleUnmatch = () => {
-      onUnmatch(match.id);
-      notify('You unmatched this user.', 'info');
-      onBack();
+    onUnmatch(match.id);
+    notify('You unmatched this user.', 'info');
+    onBack();
   };
 
   return (
-    <div className="flex flex-col h-full bg-black relative animate-in slide-in-from-right">
+    <div className="flex flex-col h-full bg-transparent relative animate-in slide-in-from-right">
       {isVideoCall && (
-          <VideoCallModal fighter={match.fighter} onEndCall={() => setIsVideoCall(false)} />
+        <VideoCallModal fighter={match.fighter} onEndCall={() => setIsVideoCall(false)} />
       )}
 
       {/* Header */}
-      <div className="flex items-center justify-between p-4 bg-squabble-dark border-b border-gray-800 relative z-20">
-        <button onClick={onBack} className="p-2 text-gray-400 hover:text-white">
+      <div className="flex items-center justify-between p-4 bg-fb-card border-b border-transparent relative z-20 rounded-t-lg shadow-sm">
+        <button onClick={onBack} className="p-2 text-fb-text-secondary hover:text-fb-text">
           <ChevronLeft size={24} />
         </button>
         <div className="flex flex-col items-center">
-           <span className="font-heading font-bold text-xl uppercase tracking-wider animate-laser-pulse text-shadow-laser">{match.fighter.name}</span>
-           <span className="text-[10px] text-green-500 uppercase font-bold tracking-widest">Online & Angry</span>
+          <span className="font-bold text-xl text-fb-text">{match.fighter.name}</span>
+          <span className="text-[10px] text-green-500 font-bold">Active Now</span>
         </div>
         <div className="flex items-center">
-            <button 
-                onClick={() => setIsVideoCall(true)}
-                className="p-2 text-squabble-red mr-1 hover:text-white transition-colors animate-laser-pulse text-shadow-laser"
-            >
-                <Video size={24} />
-            </button>
-            <button onClick={() => setShowMenu(!showMenu)} className="p-2 text-gray-400 hover:text-white relative">
-                <MoreVertical size={24} />
-            </button>
+          <button
+            onClick={() => setIsVideoCall(true)}
+            className="p-2 text-fb-blue mr-1 hover:bg-fb-hover rounded-full transition-colors"
+          >
+            <Video size={24} />
+          </button>
+          <button onClick={() => setShowMenu(!showMenu)} className="p-2 text-fb-blue hover:bg-fb-hover rounded-full relative">
+            <MoreVertical size={24} />
+          </button>
         </div>
-        
+
         {/* Dropdown Menu */}
         {showMenu && (
-            <div className="absolute top-16 right-4 bg-gray-900 border border-gray-700 rounded-xl shadow-xl w-48 overflow-hidden z-30">
-                <button 
-                    onClick={handleReport}
-                    className="w-full text-left px-4 py-3 hover:bg-gray-800 flex items-center gap-2 text-red-500 font-bold uppercase text-xs animate-laser-pulse text-shadow-laser"
-                >
-                    <Flag size={14} /> Report User
-                </button>
-                <button 
-                    onClick={handleUnmatch}
-                    className="w-full text-left px-4 py-3 hover:bg-gray-800 flex items-center gap-2 text-gray-400 font-bold uppercase text-xs animate-laser-pulse text-shadow-laser"
-                >
-                    <ShieldAlert size={14} /> Unmatch
-                </button>
-            </div>
+          <div className="absolute top-16 right-4 bg-fb-card border border-gray-700 rounded-xl shadow-xl w-48 overflow-hidden z-30">
+            <button
+              onClick={handleReport}
+              className="w-full text-left px-4 py-3 hover:bg-fb-hover flex items-center gap-2 text-fb-text font-bold text-xs"
+            >
+              <Flag size={14} /> Report User
+            </button>
+            <button
+              onClick={handleUnmatch}
+              className="w-full text-left px-4 py-3 hover:bg-fb-hover flex items-center gap-2 text-fb-text font-bold text-xs"
+            >
+              <ShieldAlert size={14} /> Unmatch
+            </button>
+          </div>
         )}
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 relative z-10">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 relative z-10 bg-transparent">
         <div className="flex justify-center mb-4">
-             <div className="bg-gray-900/50 text-[10px] text-gray-500 px-3 py-1 rounded-full uppercase border border-gray-800">
-                 Encrypted Chat • Keep it in the ring
-             </div>
+          <div className="bg-fb-card text-[10px] text-fb-text-secondary px-3 py-1 rounded-full border border-transparent">
+            Facebook Messenger • End-to-end encrypted
+          </div>
         </div>
 
         {messages.map((msg) => (
           <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[75%] p-3 rounded-2xl text-sm ${
-              msg.sender === 'user' 
-                ? 'bg-squabble-red text-white rounded-br-none' 
-                : 'bg-gray-800 text-gray-200 rounded-bl-none'
-            }`}>
+            <div className={`max-w-[75%] p-3 rounded-2xl text-sm ${msg.sender === 'user'
+                ? 'bg-fb-blue text-white'
+                : 'bg-fb-hover text-fb-text'
+              }`}>
               {msg.text}
             </div>
           </div>
         ))}
         {isTyping && (
-           <div className="flex justify-start">
-             <div className="bg-gray-800 p-3 rounded-2xl rounded-bl-none">
-               <div className="flex space-x-1">
-                 <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                 <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                 <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-               </div>
-             </div>
-           </div>
+          <div className="flex justify-start">
+            <div className="bg-fb-hover p-3 rounded-2xl">
+              <div className="flex space-x-1">
+                <div className="w-2 h-2 bg-fb-text-secondary rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                <div className="w-2 h-2 bg-fb-text-secondary rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                <div className="w-2 h-2 bg-fb-text-secondary rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+              </div>
+            </div>
+          </div>
         )}
         <div ref={messagesEndRef} />
       </div>
 
       {/* Input */}
-      <div className="p-4 bg-squabble-dark border-t border-gray-800 relative z-20">
+      <div className="p-4 bg-fb-card border-t border-transparent relative z-20 rounded-b-lg">
         <div className="flex items-center gap-2">
           <input
             type="text"
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-            placeholder="Talk trash..."
-            className="flex-1 bg-gray-900 border border-gray-700 text-white p-3 rounded-full focus:outline-none focus:border-squabble-red"
+            placeholder="Type a message..."
+            className="flex-1 bg-fb-hover border border-transparent text-fb-text p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-fb-blue px-4"
           />
-          <button 
+          <button
             onClick={handleTrashTalk}
-            className="p-3 bg-gray-800 rounded-full text-white hover:bg-gray-700 transition-colors"
+            className="p-2 text-fb-blue hover:bg-fb-hover rounded-full transition-colors"
           >
-            <Bot size={20} />
+            <Bot size={24} />
           </button>
-          <button 
+          <button
             onClick={handleSend}
-            className="p-3 bg-squabble-red rounded-full text-white hover:bg-red-700 transition-colors animate-laser-pulse text-shadow-laser"
+            className="p-2 text-fb-blue hover:bg-fb-hover rounded-full transition-colors"
           >
-            <Send size={20} />
+            <Send size={24} />
           </button>
         </div>
       </div>

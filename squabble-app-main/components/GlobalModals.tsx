@@ -7,14 +7,14 @@ import { Toast } from './Toast';
 import { X } from 'lucide-react';
 
 export const GlobalModals: React.FC = () => {
-  const { 
-    notification, 
-    showSafetyCenter, 
-    showPayment, 
+  const {
+    notification,
+    showSafetyCenter,
+    showPayment,
     selectedFighter,
-    setNotification, 
-    setShowSafetyCenter, 
-    setShowPayment, 
+    setNotification,
+    setShowSafetyCenter,
+    setShowPayment,
     setSelectedFighter,
     handleSuperLike
   } = useAppStore();
@@ -29,8 +29,8 @@ export const GlobalModals: React.FC = () => {
       {/* Map Selection Modal */}
       {selectedFighter && (
         <div className="absolute inset-0 z-[70] bg-black/80 backdrop-blur-sm p-8 flex items-center justify-center" onClick={() => setSelectedFighter(null)}>
-          <div className="relative w-full aspect-[3/4] max-w-sm bg-gray-900 rounded-2xl overflow-hidden shadow-2xl border-2 border-squabble-red" onClick={e => e.stopPropagation()}>
-            <button onClick={() => setSelectedFighter(null)} className="absolute top-2 right-2 z-20 text-white bg-black/50 rounded-full p-1"><X size={24} /></button>
+          <div className="relative w-full aspect-[3/4] max-w-sm bg-fb-card rounded-2xl overflow-hidden shadow-2xl border-2 border-transparent" onClick={e => e.stopPropagation()}>
+            <button onClick={() => setSelectedFighter(null)} className="absolute top-2 right-2 z-20 text-white bg-black/50 rounded-full p-1 hover:bg-black/70"><X size={24} /></button>
             <FighterCard fighter={selectedFighter} active={true} onSuperLike={handleSuperLike} />
           </div>
         </div>
