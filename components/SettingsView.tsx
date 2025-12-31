@@ -452,6 +452,5 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onBack, onSaveKey, o
                 </button>
             </div>
         </div>
-    </div >
-  );
+    );
 };
