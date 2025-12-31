@@ -1,234 +1,261 @@
+// Updated Database Service using InstantDB
+import instant from '../lib/instant/client'
+import { Match, UserProfile, Message } from '../types'
 
-import { Match } from '../types';
-
-// Constants
-const DB_ENDPOINT = 'wss://squabble-06dbhqbb4tpar7vu71rsnbjab8.aws-use1.surreal.cloud/rpc';
-const DB_NAMESPACE = 'squabble';
-const DB_DATABASE = 'squabble_db';
-const LS_KEY = 'squabble_matches';
-
-
-const LS_TOKEN_KEY = 'squabble_auth_token';
-
-// Service State
-let db: any = null;
-let useLocalStorage = false;
-let isInitialized = false;
-
-
-
-
-
-
+// Initialize InstantDB connection
+let isInitialized = false
 
 export const initDB = async (): Promise<boolean> => {
-  if (isInitialized) return !useLocalStorage;
-
+  if (isInitialized) return true
+  
   try {
-
-    // Dynamic import to prevent crash if module is missing or fails
-    const SurrealMod: any = await import('surrealdb');
-
-    // Handle ESM default vs named export differences
-    const SurrealClass = SurrealMod.default || SurrealMod.Surreal;
-
-    if (!SurrealClass) {
-      throw new Error("SurrealDB class not found in module.");
-    }
-
-    db = new SurrealClass();
-
-
-    await db.connect(DB_ENDPOINT);
-
-    // Try to resume session
-    const token = localStorage.getItem(LS_TOKEN_KEY);
-    if (token) {
-      try {
-        await db.authenticate(token);
-
-      } catch (e) {
-        console.warn("Session invalid", e);
-        localStorage.removeItem(LS_TOKEN_KEY);
-      }
-    } else {
-      // If no token, we might need to sign in as guest or just stay connected for public endpoints
-      // For now, we just stay connected.
-    }
-    await db.use({ ns: DB_NAMESPACE, db: DB_DATABASE });
-
-
-    useLocalStorage = false;
-    isInitialized = true;
-    return true;
-
+    await instant.connect()
+    isInitialized = true
+    return true
   } catch (error) {
-    console.warn('SurrealDB initialization failed. Falling back to LocalStorage.', error);
-    useLocalStorage = true;
-    isInitialized = true;
-    return false;
+    console.error('InstantDB initialization failed:', error)
+    return false
   }
-};
+}
 
-export const signin = async (user: string, pass: string): Promise<void> => {
-  if (!db) await initDB();
-  if (useLocalStorage) throw new Error("Cannot login in offline mode.");
-
+export const signin = async (email: string, password: string): Promise<void> => {
+  if (!isInitialized) await initDB()
+  
   try {
-    const token = await db.signin({
-      namespace: DB_NAMESPACE,
-      database: DB_DATABASE,
-      scope: 'allusers',
-      username: user,
-      password: pass,
-    });
-    localStorage.setItem(LS_TOKEN_KEY, token);
+    await instant.signIn({ email, password })
   } catch (e) {
-    console.error("Signin failed", e);
-    throw e;
+    console.error("Signin failed", e)
+    throw e
   }
-};
+}
 
-export const signup = async (user: string, pass: string): Promise<void> => {
-  if (!db) await initDB();
-  if (useLocalStorage) throw new Error("Cannot signup in offline mode.");
-
+export const signup = async (email: string, password: string): Promise<void> => {
+  if (!isInitialized) await initDB()
+  
   try {
-    const token = await db.signup({
-      namespace: DB_NAMESPACE,
-      database: DB_DATABASE,
-      scope: 'allusers',
-      username: user,
-      password: pass,
-    });
-    localStorage.setItem(LS_TOKEN_KEY, token);
+    await instant.signUp({ email, password })
   } catch (e) {
-    console.error("Signup failed", e);
-    throw e;
+    console.error("Signup failed", e)
+    throw e
   }
-};
+}
 
 export const signout = async (): Promise<void> => {
-  localStorage.removeItem(LS_TOKEN_KEY);
-  if (db) await db.invalidate();
-};
+  try {
+    await instant.signOut()
+  } catch (e) {
+    console.error("Signout failed", e)
+  }
+}
 
-export const isAuthenticated = (): boolean => {
-  return !!localStorage.getItem(LS_TOKEN_KEY);
-};
+export const isAuthenticated = async (): Promise<boolean> => {
+  try {
+    const user = await instant.getCurrentUser()
+    return !!user
+  } catch (e) {
+    console.error("Auth check failed", e)
+    return false
+  }
+}
 
 export const getMatches = async (): Promise<Match[]> => {
-  // Ensure we are initialized (lazy init fallback)
-  if (!isInitialized) await initDB();
-
-  if (useLocalStorage || !db) {
-    return getLocalMatches();
-  }
-
   try {
-    const result = await db.select('matches');
-    return result as Match[];
+    const currentUser = await instant.getCurrentUser()
+    if (!currentUser) return []
+    
+    const result = await instant.query({
+      matches: {
+        $: {
+          where: {
+            userId: currentUser.id
+          },
+          orderBy: {
+            timestamp: 'desc'
+          }
+        }
+      }
+    })
+    
+    return result.matches || []
   } catch (error) {
-    console.error('DB fetch failed, falling back to local', error);
-    return getLocalMatches();
+    console.error('Failed to get matches:', error)
+    return []
   }
-};
+}
 
 export const createMatch = async (match: Match): Promise<void> => {
-  if (!isInitialized) await initDB();
-
-  // Always save to local storage as backup/sync
-  const currentLocal = getLocalMatches();
-  saveLocalMatches([match, ...currentLocal]);
-
-  if (!useLocalStorage && db) {
-    try {
-      await db.create(`matches:${match.id}`, match);
-    } catch (error) {
-      console.error('Failed to create match in DB', error);
-    }
+  try {
+    const currentUser = await instant.getCurrentUser()
+    if (!currentUser) return
+    
+    await instant.transact([
+      {
+        matches: {
+          $: {
+            create: {
+              ...match,
+              userId: currentUser.id
+            }
+          }
+        }
+      }
+    ])
+  } catch (error) {
+    console.error('Failed to create match:', error)
   }
-};
+}
 
 export const updateMatchMessages = async (matchId: string, history: Message[], lastMessage: string): Promise<void> => {
-  if (!isInitialized) await initDB();
-
-  // Update Local
-  const matches = getLocalMatches();
-  const updatedMatches = matches.map(m =>
-    m.id === matchId ? { ...m, history, lastMessage } : m
-  );
-  saveLocalMatches(updatedMatches);
-
-  // Update DB
-  if (!useLocalStorage && db) {
-    try {
-      await db.merge(`matches:${matchId}`, {
-        history,
-        lastMessage
-      });
-    } catch (error) {
-      console.error('Failed to update match in DB', error);
-    }
+  try {
+    await instant.transact([
+      {
+        matches: {
+          $: {
+            update: {
+              where: { id: matchId },
+              set: {
+                history,
+                lastMessage
+              }
+            }
+          }
+        }
+      }
+    ])
+  } catch (error) {
+    console.error('Failed to update match messages:', error)
   }
-};
+}
 
 export const deleteMatch = async (matchId: string): Promise<void> => {
-  if (!isInitialized) await initDB();
-
-  // Update Local
-  const matches = getLocalMatches();
-  const updatedMatches = matches.filter(m => m.id !== matchId);
-  saveLocalMatches(updatedMatches);
-
-  // Update DB
-  if (!useLocalStorage && db) {
-    try {
-      await db.delete(`matches:${matchId}`);
-    } catch (error) {
-      console.error('Failed to delete match in DB', error);
-    }
+  try {
+    await instant.transact([
+      {
+        matches: {
+          $: {
+            delete: {
+              where: { id: matchId }
+            }
+          }
+        }
+      }
+    ])
+  } catch (error) {
+    console.error('Failed to delete match:', error)
   }
-};
-
-// --- User Profile Helpers ---
+}
 
 export const getUserProfile = async (): Promise<UserProfile> => {
   try {
-    const stored = localStorage.getItem(LS_PROFILE_KEY);
-    if (stored) {
-      return { ...DEFAULT_PROFILE, ...JSON.parse(stored) };
-    }
-  } catch (e) {
-    console.error("Failed to load profile", e);
+    const currentUser = await instant.getCurrentUser()
+    if (!currentUser) return getDefaultProfile()
+    
+    const result = await instant.query({
+      profiles: {
+        $: {
+          where: {
+            userId: currentUser.id
+          }
+        }
+      }
+    })
+    
+    return result.profiles?.[0] || getDefaultProfile()
+  } catch (error) {
+    console.error('Failed to get user profile:', error)
+    return getDefaultProfile()
   }
-  return DEFAULT_PROFILE;
-};
+}
 
 export const saveUserProfile = async (profile: UserProfile): Promise<void> => {
-  localStorage.setItem(LS_PROFILE_KEY, JSON.stringify(profile));
-
-  // Optional: Save to DB if connected
-  if (!useLocalStorage && db && isInitialized) {
-    try {
-      // Check if user exists or create
-      // Simplified for this demo
-      await db.merge('user:me', profile);
-    } catch (e) {
-      console.warn("Failed to save profile to DB", e);
-    }
+  try {
+    const currentUser = await instant.getCurrentUser()
+    if (!currentUser) return
+    
+    await instant.transact([
+      {
+        profiles: {
+          $: {
+            upsert: {
+              userId: currentUser.id,
+              ...profile
+            }
+          }
+        }
+      }
+    ])
+  } catch (error) {
+    console.error('Failed to save user profile:', error)
   }
-};
+}
 
-// --- Legal Helpers ---
+export const getLegalStatus = async (): Promise<boolean> => {
+  try {
+    const currentUser = await instant.getCurrentUser()
+    if (!currentUser) return false
+    
+    const result = await instant.query({
+      legal: {
+        $: {
+          where: {
+            userId: currentUser.id
+          }
+        }
+      }
+    })
+    
+    return result.legal?.[0]?.accepted || false
+  } catch (error) {
+    console.error('Failed to get legal status:', error)
+    return false
+  }
+}
 
-export const getLegalStatus = (): boolean => {
-  return localStorage.getItem(LS_LEGAL_KEY) === 'true';
-};
+export const saveLegalStatus = async (accepted: boolean): Promise<void> => {
+  try {
+    const currentUser = await instant.getCurrentUser()
+    if (!currentUser) return
+    
+    await instant.transact([
+      {
+        legal: {
+          $: {
+            upsert: {
+              userId: currentUser.id,
+              accepted: accepted,
+              timestamp: Date.now()
+            }
+          }
+        }
+      }
+    ])
+  } catch (error) {
+    console.error('Failed to save legal status:', error)
+  }
+}
 
-export const saveLegalStatus = (accepted: boolean): void => {
-  localStorage.setItem(LS_LEGAL_KEY, accepted ? 'true' : 'false');
-};
+// Helper function to get default profile
+const getDefaultProfile = (): UserProfile => {
+  return {
+    name: '',
+    age: 25,
+    height: '5\'10"',
+    weight: '170 lbs',
+    weightClass: 'Middleweight',
+    stance: 'Orthodox',
+    experience: 'Amateur',
+    bio: 'Fighting enthusiast',
+    fightingStyle: 'Mixed',
+    wins: 0,
+    losses: 0,
+    matches: 0,
+    isVerified: false,
+    trustedContacts: [],
+    balance: 0,
+    betHistory: [],
+    transactions: []
+  }
+}
 
 export default {
   initDB,
@@ -239,5 +266,9 @@ export default {
   getUserProfile,
   saveUserProfile,
   getLegalStatus,
-  saveLegalStatus
-};
+  saveLegalStatus,
+  signin,
+  signup,
+  signout,
+  isAuthenticated
+}

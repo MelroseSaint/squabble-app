@@ -1,0 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom styles for Squabble */
+:root {
+  --squabble-red: #ff4444;
+  --squabble-dark: #111111;
+}
+
+.font-heading {
+  font-family: 'Teko', sans-serif;
+}
+
+.text-squabble-red {
+  color: var(--squabble-red);
+}
+
+.bg-squabble-red {
+  background-color: var(--squabble-red);
+}
+
+.border-squabble-red {
+  border-color: var(--squabble-red);
+}
+
+.bg-squabble-dark {
+  background-color: var(--squabble-dark);
+}
+
+.text-stroke-black {
+  -webkit-text-stroke: 1px black;
+  text-stroke: 1px black;
+}
+
+/* Animation classes */
+@keyframes zoom-in {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-in.zoom-in {
+  animation: zoom-in 0.3s ease-out;
+}
