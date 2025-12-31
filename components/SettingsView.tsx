@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, Key, Save, Trash2, Eye, EyeOff, User, ShieldCheck, UserPlus, BadgeCheck, Upload, CreditCard, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
 import { UserProfile, TrustedContact } from '../types';
@@ -452,6 +451,5 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onBack, onSaveKey, o
                 </button>
             </div>
         </div>
-    </div >
   );
 };

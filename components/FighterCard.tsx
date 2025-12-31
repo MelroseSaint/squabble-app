@@ -1,6 +1,6 @@
 import React from 'react';
 import { Fighter } from '../types';
-import { MapPin, Trophy, Flame, Shield, Activity, Scale, Swords, Zap, BicepsFlexed } from 'lucide-react';
+import { MapPin, Trophy, Flame, Shield, Activity, Scale, Swords, Zap } from 'lucide-react';
 
 interface FighterCardProps {
   fighter: Fighter;
@@ -120,7 +120,7 @@ export const FighterCard: React.FC<FighterCardProps> = ({ fighter, active }) => 
           <div className="flex gap-3 mt-1 px-1">
              <div className="flex-1">
                  <div className="flex justify-between text-[10px] uppercase font-bold text-gray-400 mb-1">
-                    <span className="flex items-center gap-1"><BicepsFlexed size={10} /> STR</span>
+                    <span className="flex items-center gap-1"><Swords size={10} /> STR</span>
                     <span className="text-white">{fighter.stats.strength}</span>
                  </div>
                  <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden">
@@ -148,12 +148,12 @@ export const FighterCard: React.FC<FighterCardProps> = ({ fighter, active }) => 
           </div>
 
           <div className="flex gap-2 mt-2 text-xs text-gray-300">
-             <span className="px-2 py-1 bg-gray-800 rounded border border-gray-700 flex items-center gap-1">
-                 <Scale size={10} /> {fighter.height} / {fighter.weight}
-             </span>
-             <span className="px-2 py-1 bg-gray-800 rounded border border-gray-700 uppercase flex items-center gap-1">
-                 <Swords size={10} /> {fighter.fightingStyle}
-             </span>
+              <span className="px-2 py-1 bg-gray-800 rounded border border-gray-700 flex items-center gap-1">
+                  <Scale size={10} /> {fighter.height} / {fighter.weight}
+              </span>
+              <span className="px-2 py-1 bg-gray-800 rounded border border-gray-700 uppercase flex items-center gap-1">
+                  <Trophy size={10} /> {fighter.fightingStyle}
+              </span>
           </div>
 
           <p className="text-gray-200 text-sm mt-2 line-clamp-2 italic drop-shadow-md">

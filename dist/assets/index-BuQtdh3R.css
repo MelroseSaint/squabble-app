@@ -1,0 +1,1 @@
+@tailwind base;@tailwind components;@tailwind utilities;@layer base{:root{--color-squabble-red: #E50914;--color-squabble-dark: #141414;--color-squabble-gray: #2F2F2F}}@layer utilities{.font-sans{font-family:Inter,sans-serif}.font-heading{font-family:Teko,sans-serif}}
