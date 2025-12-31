@@ -1,124 +1,212 @@
-
-import { Match } from '../types';
+import { Match, Message, UserProfile } from '../types';
 
 // Constants
 const DB_ENDPOINT = 'wss://squabble-06dbhqbb4tpar7vu71rsnbjab8.aws-use1.surreal.cloud/rpc';
 const DB_NAMESPACE = 'squabble';
 const DB_DATABASE = 'squabble_db';
-const LS_KEY = 'squabble_matches';
 
-
+const LS_MATCHES_KEY = 'squabble_matches';
 const LS_TOKEN_KEY = 'squabble_auth_token';
+const LS_LOCAL_USERS_KEY = 'squabble_local_users';
+
+const LS_PROFILE_KEY = 'squabble_user_profile';
+const LS_LEGAL_KEY = 'squabble_legal_accepted';
+
+const DEFAULT_PROFILE: UserProfile = {
+  name: 'Rookie',
+  age: 21,
+  height: "5'10\"",
+  weight: '170 lbs',
+  weightClass: 'Welterweight',
+  stance: 'Orthodox',
+  experience: 'Amateur',
+  bio: "Here for the smoke. Not the hospital bill.",
+  fightingStyle: 'Boxing',
+  wins: 0,
+  losses: 0,
+  matches: 0,
+  isVerified: false,
+  trustedContacts: [],
+  balance: 0,
+  betHistory: [],
+  transactions: []
+};
+
+type StoredAuth =
+  | { mode: 'surreal'; token: string }
+  | { mode: 'offline'; user: string; token?: string };
+
+const readJson = <T,>(raw: string | null): T | null => {
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    return null;
+  }
+};
+
+const getStoredAuth = (): StoredAuth | null => {
+  const raw = localStorage.getItem(LS_TOKEN_KEY);
+  if (!raw) return null;
+
+  const parsed = readJson<StoredAuth>(raw);
+  if (parsed && (parsed as any).mode) return parsed;
+
+  // Backwards compatibility: older versions stored the Surreal token directly.
+  return { mode: 'surreal', token: raw };
+};
+
+const setStoredAuth = (auth: StoredAuth | null) => {
+  if (!auth) {
+    localStorage.removeItem(LS_TOKEN_KEY);
+    return;
+  }
+
+  localStorage.setItem(LS_TOKEN_KEY, JSON.stringify(auth));
+};
+
+const getLocalMatches = (): Match[] => {
+  const stored = localStorage.getItem(LS_MATCHES_KEY);
+  if (!stored) return [];
+
+  try {
+    const parsed = JSON.parse(stored);
+    return Array.isArray(parsed) ? (parsed as Match[]) : [];
+  } catch (e) {
+    console.warn('Failed to parse local matches, resetting.', e);
+    localStorage.removeItem(LS_MATCHES_KEY);
+    return [];
+  }
+};
+
+const saveLocalMatches = (matches: Match[]) => {
+  localStorage.setItem(LS_MATCHES_KEY, JSON.stringify(matches));
+};
+
+const getLocalUsers = (): Record<string, { password: string }> => {
+  return readJson<Record<string, { password: string }>>(localStorage.getItem(LS_LOCAL_USERS_KEY)) ?? {};
+};
+
+const saveLocalUsers = (users: Record<string, { password: string }>) => {
+  localStorage.setItem(LS_LOCAL_USERS_KEY, JSON.stringify(users));
+};
 
 // Service State
 let db: any = null;
 let useLocalStorage = false;
 let isInitialized = false;
 
-
-
-
-
-
-
 export const initDB = async (): Promise<boolean> => {
   if (isInitialized) return !useLocalStorage;
 
   try {
-
     // Dynamic import to prevent crash if module is missing or fails
     const SurrealMod: any = await import('surrealdb');
 
     // Handle ESM default vs named export differences
     const SurrealClass = SurrealMod.default || SurrealMod.Surreal;
-
     if (!SurrealClass) {
-      throw new Error("SurrealDB class not found in module.");
+      throw new Error('SurrealDB class not found in module.');
     }
 
     db = new SurrealClass();
 
+    // Disable version check: Surreal client fetches /version via HTTP(S) which often fails behind proxies.
+    await db.connect(DB_ENDPOINT, { versionCheck: false });
 
-    await db.connect(DB_ENDPOINT);
-
-    // Try to resume session
-    const token = localStorage.getItem(LS_TOKEN_KEY);
-    if (token) {
+    // Try to resume session (Surreal tokens only)
+    const auth = getStoredAuth();
+    if (auth?.mode === 'surreal' && auth.token) {
       try {
-        await db.authenticate(token);
-
+        await db.authenticate(auth.token);
       } catch (e) {
-        console.warn("Session invalid", e);
-        localStorage.removeItem(LS_TOKEN_KEY);
+        console.warn('Session invalid', e);
+        setStoredAuth(null);
       }
-    } else {
-      // If no token, we might need to sign in as guest or just stay connected for public endpoints
-      // For now, we just stay connected.
     }
-    await db.use({ ns: DB_NAMESPACE, db: DB_DATABASE });
 
+    await db.use({ namespace: DB_NAMESPACE, database: DB_DATABASE });
 
     useLocalStorage = false;
     isInitialized = true;
     return true;
-
   } catch (error) {
     console.warn('SurrealDB initialization failed. Falling back to LocalStorage.', error);
     useLocalStorage = true;
     isInitialized = true;
+    db = null;
     return false;
   }
 };
 
 export const signin = async (user: string, pass: string): Promise<void> => {
-  if (!db) await initDB();
-  if (useLocalStorage) throw new Error("Cannot login in offline mode.");
+  if (!isInitialized) await initDB();
 
-  try {
-    const token = await db.signin({
-      namespace: DB_NAMESPACE,
-      database: DB_DATABASE,
-      scope: 'allusers',
-      username: user,
-      password: pass,
-    });
-    localStorage.setItem(LS_TOKEN_KEY, token);
-  } catch (e) {
-    console.error("Signin failed", e);
-    throw e;
+  if (useLocalStorage || !db) {
+    const users = getLocalUsers();
+    if (!users[user] || users[user].password !== pass) {
+      throw new Error('Invalid username or password (offline mode).');
+    }
+    setStoredAuth({ mode: 'offline', user });
+    return;
   }
+
+  const token = await db.signin({
+    namespace: DB_NAMESPACE,
+    database: DB_DATABASE,
+    scope: 'allusers',
+    username: user,
+    password: pass
+  });
+
+  // Persist Surreal auth
+  setStoredAuth({ mode: 'surreal', token });
 };
 
 export const signup = async (user: string, pass: string): Promise<void> => {
-  if (!db) await initDB();
-  if (useLocalStorage) throw new Error("Cannot signup in offline mode.");
+  if (!isInitialized) await initDB();
 
-  try {
-    const token = await db.signup({
-      namespace: DB_NAMESPACE,
-      database: DB_DATABASE,
-      scope: 'allusers',
-      username: user,
-      password: pass,
-    });
-    localStorage.setItem(LS_TOKEN_KEY, token);
-  } catch (e) {
-    console.error("Signup failed", e);
-    throw e;
+  if (useLocalStorage || !db) {
+    const users = getLocalUsers();
+    if (users[user]) {
+      throw new Error('Username already exists (offline mode).');
+    }
+
+    users[user] = { password: pass };
+    saveLocalUsers(users);
+    setStoredAuth({ mode: 'offline', user });
+    return;
   }
+
+  const token = await db.signup({
+    namespace: DB_NAMESPACE,
+    database: DB_DATABASE,
+    scope: 'allusers',
+    username: user,
+    password: pass
+  });
+
+  setStoredAuth({ mode: 'surreal', token });
 };
 
 export const signout = async (): Promise<void> => {
-  localStorage.removeItem(LS_TOKEN_KEY);
-  if (db) await db.invalidate();
+  setStoredAuth(null);
+
+  if (db) {
+    try {
+      await db.invalidate();
+    } catch (e) {
+      // Ignore if connection is already gone
+      console.warn('Failed to invalidate DB session', e);
+    }
+  }
 };
 
 export const isAuthenticated = (): boolean => {
-  return !!localStorage.getItem(LS_TOKEN_KEY);
+  return !!getStoredAuth();
 };
 
 export const getMatches = async (): Promise<Match[]> => {
-  // Ensure we are initialized (lazy init fallback)
   if (!isInitialized) await initDB();
 
   if (useLocalStorage || !db) {
@@ -155,9 +243,7 @@ export const updateMatchMessages = async (matchId: string, history: Message[], l
 
   // Update Local
   const matches = getLocalMatches();
-  const updatedMatches = matches.map(m =>
-    m.id === matchId ? { ...m, history, lastMessage } : m
-  );
+  const updatedMatches = matches.map(m => (m.id === matchId ? { ...m, history, lastMessage } : m));
   saveLocalMatches(updatedMatches);
 
   // Update DB
@@ -194,15 +280,15 @@ export const deleteMatch = async (matchId: string): Promise<void> => {
 // --- User Profile Helpers ---
 
 export const getUserProfile = async (): Promise<UserProfile> => {
+  const stored = localStorage.getItem(LS_PROFILE_KEY);
+  if (!stored) return DEFAULT_PROFILE;
+
   try {
-    const stored = localStorage.getItem(LS_PROFILE_KEY);
-    if (stored) {
-      return { ...DEFAULT_PROFILE, ...JSON.parse(stored) };
-    }
+    return { ...DEFAULT_PROFILE, ...JSON.parse(stored) };
   } catch (e) {
-    console.error("Failed to load profile", e);
+    console.error('Failed to load profile', e);
+    return DEFAULT_PROFILE;
   }
-  return DEFAULT_PROFILE;
 };
 
 export const saveUserProfile = async (profile: UserProfile): Promise<void> => {
@@ -211,11 +297,9 @@ export const saveUserProfile = async (profile: UserProfile): Promise<void> => {
   // Optional: Save to DB if connected
   if (!useLocalStorage && db && isInitialized) {
     try {
-      // Check if user exists or create
-      // Simplified for this demo
       await db.merge('user:me', profile);
     } catch (e) {
-      console.warn("Failed to save profile to DB", e);
+      console.warn('Failed to save profile to DB', e);
     }
   }
 };
@@ -232,6 +316,10 @@ export const saveLegalStatus = (accepted: boolean): void => {
 
 export default {
   initDB,
+  signin,
+  signup,
+  signout,
+  isAuthenticated,
   getMatches,
   createMatch,
   updateMatchMessages,
