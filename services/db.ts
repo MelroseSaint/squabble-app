@@ -6,9 +6,29 @@ const DB_ENDPOINT = 'wss://squabble-06dbhqbb4tpar7vu71rsnbjab8.aws-use1.surreal.
 const DB_NAMESPACE = 'squabble';
 const DB_DATABASE = 'squabble_db';
 const LS_KEY = 'squabble_matches';
-
-
 const LS_TOKEN_KEY = 'squabble_auth_token';
+const LS_LEGAL_KEY = 'squabble_legal';
+const LS_PROFILE_KEY = 'squabble_profile';
+
+const DEFAULT_PROFILE = {
+  name: '',
+  age: 0,
+  height: '',
+  weight: '',
+  weightClass: '',
+  stance: '',
+  experience: '',
+  bio: '',
+  fightingStyle: '',
+  wins: 0,
+  losses: 0,
+  matches: 0,
+  isVerified: false,
+  trustedContacts: [],
+  balance: 0,
+  betHistory: [],
+  transactions: []
+};
 
 // Service State
 let db: any = null;
